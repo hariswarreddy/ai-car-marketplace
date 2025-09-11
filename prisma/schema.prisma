@@ -1,7 +1,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -154,9 +153,11 @@ enum CarType {
   HATCHBACK
   COUPE
   CONVERTIBLE
-  WAGON
+  PICKUP
   VAN
-  TRUCK
+  WAGON
+  CROSSOVER
+  SPORTS
   OTHER
 }
 
