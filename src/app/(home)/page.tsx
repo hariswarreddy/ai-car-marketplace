@@ -58,7 +58,7 @@ export default function Home({ searchParams }: Props) {
                 </SelectContent>
               </Select>
               <Button className="w-full">
-                <Search className="mr-2 h-4 w-4" /> Search
+                <Search className="mr-1 h-4 w-4" /> Search
               </Button>
             </div>
           </div>

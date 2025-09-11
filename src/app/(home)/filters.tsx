@@ -42,15 +42,22 @@ export const Filters = () => {
 
       const newQuery =
         queries.length > 0
-          ? queries.map((q) => {
-              if (q.startsWith("type=")) {
-                return `type=${activeFilters.join(",")}`;
-              }
-              return q;
-            })
-          : [`type=${activeFilters.join(",")}`];
+          ? queries
+              .map((q) => {
+                if (q.startsWith("type=")) {
+                  const filtered = activeFilters.filter(Boolean);
+                  return filtered.length > 0
+                    ? `type=${filtered.join(",")}`
+                    : null;
+                }
+                return q;
+              })
+              .filter(Boolean) // remove nulls
+          : activeFilters.filter(Boolean).length > 0
+          ? [`type=${activeFilters.filter(Boolean).join(",")}`]
+          : [];
 
-      router.push(`?${newQuery.join("&")}`);
+      router.push(newQuery.length > 0 ? `?${newQuery.join("&")}` : "?");
     }, 800); // 0.8 second delay
 
     return () => {
