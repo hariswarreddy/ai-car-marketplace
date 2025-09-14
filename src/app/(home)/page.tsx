@@ -13,7 +13,7 @@ import { Image } from "@imagekit/next";
 import Link from "next/link";
 import { Suspense } from "react";
 import {Filters} from "./filters";
-// import { getCars } from "@/lib/actions/cars-action";
+import { getCars } from "@/lib/actions/cars-action";
 
 type Props = {
   searchParams: { type: string; page: string };
@@ -113,46 +113,45 @@ export default function Home({ searchParams }: Props) {
 }
 
 const FeaturedCars = async ({ searchParams }: Props) => {
-  // const page = Number(searchParams.page) || 1;
-  // const type = searchParams.type || "all";
+  const params = await searchParams;
+  const page = Number(params.page) || 1;
+  const type = params.type || "all";
+  const cars = await getCars({ page, type });
 
-  // const cars = await getCars({ page, type });
-
-  return (
-    <div>Featured Cars</div>
-    // <Card key={car.id} className="overflow-hidden">
-    //   <div className="relative h-48">
-    //     <Image
-    //       src={car.images[0]}
-    //       alt={car.name}
-    //       fill
-    //       className="object-cover"
-    //     />
-    //   </div>
-    //   <CardContent className="p-4">
-    //     <div className="flex justify-between items-start mb-2">
-    //       <div>
-    //         <h3 className="text-xl font-semibold">{car.name}</h3>
-    //         <p className="text-sm text-gray-500">
-    //           {car.year} • {car.mileage} miles
-    //         </p>
-    //       </div>
-    //       <p className="text-xl font-bold text-primary">
-    //         ${car.price.toLocaleString()}
-    //       </p>
-    //     </div>
-    //     <div className="flex gap-2 mt-4">
-    //       <Button className="w-full" asChild>
-    //         <Link href={`/cars/${car.id}`}>View Details</Link>
-    //       </Button>
-    //       <Button variant="outline" className="w-full" asChild>
-    //         <Link href={`/contact/${car.id}`}>Contact Seller</Link>
-    //       </Button>
-    //     </div>
-    //   </CardContent>
-    // </Card>
+  return cars.map((car)=>(
+    <Card key={car.id} className="overflow-hidden">
+      <div className="relative h-48">
+        <Image
+          src={car.images[0]}
+          alt={car.name}
+          fill
+          className="object-cover"
+        />
+      </div>
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <h3 className="text-xl font-semibold">{car.name}</h3>
+            <p className="text-sm text-gray-500">
+              {car.year} • {car.mileage} miles
+            </p>
+          </div>
+          <p className="text-xl font-bold text-primary">
+            ${car.price.toLocaleString()}
+          </p>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <Button className="w-full" asChild>
+            <Link href={`/cars/${car.id}`}>View Details</Link>
+          </Button>
+          <Button variant="outline" className="w-full" asChild>
+            <Link href={`/contact/${car.id}`}>Contact Seller</Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
     
-  );
+  ));
 };
 
 const features = [
