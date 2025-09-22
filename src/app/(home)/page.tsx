@@ -8,12 +8,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CarIcon, Plus, Search } from "lucide-react";
+import { getCars } from "@/lib/actions/cars-action";
 import { Image } from "@imagekit/next";
+import { CarIcon, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
-import {Filters} from "./filters";
-import { getCars } from "@/lib/actions/cars-action";
+import { Filters } from "./filters";
 
 type Props = {
   searchParams: { type: string; page: string };
@@ -80,7 +80,7 @@ export default function Home({ searchParams }: Props) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Suspense
             fallback={<div className="h-48 bg-gray-200 animate-pulse"></div>}
           >
@@ -140,11 +140,11 @@ const FeaturedCars = async ({ searchParams }: Props) => {
             ${car.price.toLocaleString()}
           </p>
         </div>
-        <div className="flex gap-2 mt-4">
-          <Button className="w-full" asChild>
+        <div className="flex gap-2 mt-4 w-full">
+          <Button className="w-1/2" asChild>
             <Link href={`/cars/${car.id}`}>View Details</Link>
           </Button>
-          <Button variant="outline" className="w-full" asChild>
+          <Button variant="outline" className="w-1/2" asChild>
             <Link href={`/contact/${car.id}`}>Contact Seller</Link>
           </Button>
         </div>

@@ -1,10 +1,11 @@
 "use server";
 
 import { auth } from "@/auth";
-import { AddCarSchema } from "../zod";
+import { AddCarSchema, contactSellerSchema, ContactSellerSchema } from "../zod";
 import { prisma } from "../prisma";
 import { revalidatePath, unstable_cache as cache } from "next/cache";
 import { CarType, carTypes } from "@/constants/cars";
+import { toast } from "sonner";
 
 export const generateImage = async (text: string, name: string) => {
   try {
@@ -47,6 +48,7 @@ export const addNewCar = async (carData: AddCarSchema) => {
       email: authUser.email!,
     },
   });
+  console.log("carData",carData);
   if (!user) throw new Error("User not found");
 
   await prisma.$transaction(async (tx) => {
@@ -187,3 +189,207 @@ export const getCars = cache(
   [],
   { revalidate: 60 * 60 * 24 }
 );
+
+
+export const getCarById = cache(
+  async (id: string) => {
+    const car = await prisma.car.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        specification: true,
+        savedBy: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!car) throw new Error("Car not found");
+
+    return car;
+  },
+  [],
+  {
+    revalidate: 60 * 60 * 24,
+  }
+);
+
+export const getSellerInfo = cache(
+  async (carId: string) => {
+    const seller = await prisma.carSeller.findUnique({
+      where: {
+        carId,
+      },
+    });
+
+    return seller;
+  },
+  [],
+  { revalidate: 60 * 60 * 24 }
+);
+
+export const scheduleTestDrive = async ({
+  carId,
+  date,
+}: {
+  carId: string;
+  date: Date;
+}) => {
+  const session = await auth();
+  const authUser = session?.user;
+
+  if (!authUser) throw new Error("User not authenticated");
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email: authUser.email!,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!user) throw new Error("User not found");
+  if (!carId) throw new Error("Car ID is required");
+
+  const car = await prisma.car.findUnique({
+    where: {
+      id: carId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!car) throw new Error("Car not found");
+
+  await prisma.testDriveRequest.upsert({
+    where: {
+      carId_userId: {
+        carId: carId,
+        userId: user.id,
+      },
+    },
+    create: { carId, userId: user.id, date },
+    update: { date },
+  });
+
+  revalidatePath(`/cars/${carId}`);
+  return { success: true };
+};
+
+export const bookmarkCar = async (carId: string) => {
+  const session = await auth();
+  const authUser = session?.user;
+
+  if (!authUser) throw new Error("User not authenticated");
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email: authUser.email!,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!user) throw new Error("User not found");
+
+  if (!carId) throw new Error("Car ID is required");
+
+  const car = await prisma.car.findUnique({
+    where: {
+      id: carId,
+    },
+    select: {
+      id: true,
+      savedBy: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+  if (!car) return toast.error("Car not found");
+
+  const isAlreadySaved = car.savedBy.some((item) => item.id === user.id);
+  console.log("Car saved by", isAlreadySaved);
+
+  if (isAlreadySaved) {
+    await prisma.car.update({
+      where: {
+        id: carId,
+      },
+      data: {
+        savedBy: {
+          disconnect: {
+            id: user.id,
+          },
+        },
+      },
+    });
+  } else {
+    await prisma.car.update({
+      where: {
+        id: carId,
+      },
+      data: {
+        savedBy: {
+          connect: {
+            id: user.id,
+          },
+        },
+      },
+    });
+  }
+
+  revalidatePath(`/cars/${carId}`);
+};
+
+export const contactSeller = async (data: ContactSellerSchema) => {
+  contactSellerSchema.parse(data);
+
+  const { carId, firstName, lastName, content, email, phone } = data;
+
+  const session = await auth();
+  const authUser = session?.user;
+
+  if (!authUser) throw new Error("User not authenticated");
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email: authUser.email!,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!user) throw new Error("User not found");
+  if (!carId) throw new Error("Car ID is required");
+
+  const car = await prisma.car.findUnique({
+    where: {
+      id: carId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!car) throw new Error("Car not found");
+
+  await prisma.message.create({
+    data: {
+      firstName,
+      lastName,
+      content,
+      email,
+      phone,
+      userId: user.id,
+    },
+  });
+};

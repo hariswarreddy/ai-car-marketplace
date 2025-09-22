@@ -1,23 +1,44 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { useImages } from "@/store/image-store";
-import React, { useCallback, useEffect, useState } from "react";
-import NextImage from "next/image";
-import { Resolver, useForm } from "react-hook-form";
+import { CarFuelType, CarType, carTypes } from "@/constants/cars";
+import { autoGenerateCar } from "@/lib/actions/ai-action";
+import { addNewCar, generateImage } from "@/lib/actions/cars-action";
+import { imageKitAuthenticator } from "@/lib/imagekit";
 import {
   addCarSchema,
   AddCarSchema,
   generateImageSchema,
   GenerateImageSchema,
 } from "@/lib/zod";
-import { toast } from "sonner";
-import { addNewCar, generateImage } from "@/lib/actions/cars-action";
-import { imageKitAuthenticator } from "@/lib/imagekit";
+import { useImages } from "@/store/image-store";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Image,
   ImageKitAbortError,
@@ -26,35 +47,11 @@ import {
   ImageKitUploadNetworkError,
   upload,
 } from "@imagekit/next";
-import { Progress } from "@/components/ui/progress";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { LucideWandSparkles, LucideX, X } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CarFuelType, CarType, carTypes } from "@/constants/cars";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { Badge } from "@/components/ui/badge";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { autoGenerateCar } from "@/lib/actions/ai-action";
+import { LucideWandSparkles, LucideX } from "lucide-react";
+import NextImage from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Resolver, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export const GenerateImage = () => {
   const { addImage } = useImages();
@@ -93,6 +90,7 @@ export const GenerateImage = () => {
       toast.success("Image Generated Successfully", { id: toastId });
     } catch (error) {
       toast.error("Error Generating Image", { id: toastId });
+      console.log(error);
     } finally {
       setGeneratingLoader(false);
     }
@@ -130,6 +128,7 @@ export const GenerateImage = () => {
       if (!uploadResponse.filePath)
         return toast.error("Failed to upload image");
       addImage(uploadResponse.filePath);
+      console.log(uploadResponse);
       toast.success("Image Uploaded Successfully");
     } catch (error) {
       if (error instanceof ImageKitAbortError) {
@@ -234,8 +233,8 @@ const STORAGE_KEY = "new-car-details";
 export const AddCarForm = () => {
   const [isGenerateAILoading, setIsGenerateAILoading] = useState(false);
   const [submitHandlerLoading, setSubmitHandlerLoading] = useState(false);
-  const { images, addImage, setImages, removeImage, clearImages } = useImages();
-
+  const { images, addImage,  removeImage, clearImages } = useImages();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [color, setColor] = useState<string>("");
   const [colors, setColors] = useState<string[]>([]);
   const [feature, setFeature] = useState<string>("");
@@ -838,14 +837,18 @@ export const AddCarForm = () => {
                 <Input
                   id="mainImage"
                   placeholder="Enter the URL of the image (direct link image path)"
+                  ref={inputRef}
                 />
                 <Button
                   type="button"
-                  onClick={() =>
-                    addImage(
-                      "cars/la_1YiNflZIU.jpg?updatedAt=1757794001412"
-                    )
-                  }
+                  onClick={() => {
+                    const val = inputRef.current?.value.trim() ?? "";
+                    if (!val) {
+                      toast.error("Please add image url");
+                    } else {
+                      addImage(val);
+                    }
+                  }}
                 >
                   Add
                 </Button>
