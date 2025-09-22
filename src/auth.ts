@@ -8,5 +8,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [GitHub],
     session: {
         strategy:"jwt"
-    }
+    },
+    trustHost:true
 })
