@@ -16,8 +16,9 @@ import { Suspense } from "react";
 import { Filters } from "./filters";
 
 type Props = {
-  searchParams: { type: string; page: string };
+  searchParams: Promise<{ type?: string; page?: string }>;
 };
+
 export default function Home({ searchParams }: Props) {
   return (
     <main className="min-h-screen ">
@@ -114,10 +115,11 @@ export default function Home({ searchParams }: Props) {
 
 const FeaturedCars = async ({ searchParams }: Props) => {
   const params = await searchParams;
+
   const page = Number(params.page) || 1;
   const type = params.type || "all";
   const cars = await getCars({ page, type });
-
+  
   return cars.map((car)=>(
     <Card key={car.id} className="overflow-hidden">
       <div className="relative h-48">
