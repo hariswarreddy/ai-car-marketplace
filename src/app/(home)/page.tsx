@@ -9,11 +9,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getCars } from "@/lib/actions/cars-action";
-import { Image } from "@imagekit/next";
+// import { Image } from "@imagekit/next";
 import { CarIcon, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Filters } from "./filters";
+import { Image } from "@imagekit/next";
 
 type Props = {
   searchParams: Promise<{ type?: string; page?: string }>;
@@ -119,15 +120,16 @@ const FeaturedCars = async ({ searchParams }: Props) => {
   const page = Number(params.page) || 1;
   const type = params.type || "all";
   const cars = await getCars({ page, type });
+  console.log(cars);
   
   return cars.map((car)=>(
     <Card key={car.id} className="overflow-hidden">
       <div className="relative h-48">
         <Image
-          src={car.images[0]}
-          alt={car.name}
-          fill
-          className="object-cover"
+  src={car.images?.[0] || "/cars/la_1YiNflZIU.jpg"}
+  alt={car.name}
+  fill
+  className="object-cover"
         />
       </div>
       <CardContent className="p-4">

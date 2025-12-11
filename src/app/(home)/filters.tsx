@@ -23,7 +23,7 @@ export const Filters = () => {
       : activeFilters.filter((t) => t !== type);
 
     setActiveFilters(newTypes);
-  };
+  }; 
 
   useEffect(() => {
     const query = window.location.href.split("?")?.[1];

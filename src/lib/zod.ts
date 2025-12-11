@@ -17,33 +17,46 @@ export const addCarSchema = z.object({
   type: z.enum(carTypes),
   year: z.coerce
     .number()
-    .int()
+    .int() // Keep .int() here (years are always integers)
     .min(1900)
     .max(new Date().getFullYear() + 1),
-  mileage: z.coerce.number().int().nonnegative(),
+  
+  // Removed .int() if you want precise mileage (e.g. 12000.5), 
+  // otherwise keep it if you only want whole numbers.
+  mileage: z.coerce.number().nonnegative(), 
+
   colors: z.array(z.string()).min(1, "At least one color is required"),
+  
+  // Price already accepted floats (no .int() was present), which is correct for cents.
   price: z.coerce.number().positive("Price must be positive"),
+  
   description: z.string().min(20, "Description must be at least 20 characters"),
-  images: z.array(z.string()).min(1, "At least one image is required"),
+  images: z.array(z.string()).optional(),
   transmission: z.enum(["AUTOMATIC", "MANUAL"]),
   features: z.array(z.string()).min(1, "At least one feature is required"),
   location: z.string().min(2, "Location is required"),
   fuelType: z.enum(carFuelTypes),
 
   // Specification details
-  engineCapacity: z.coerce.number().positive().optional(),
-  doors: z.coerce.number().int().positive().optional(),
-  seats: z.coerce.number().int().positive().optional(),
-  topSpeed: z.coerce.number().int().positive().optional(),
-  acceleration: z.coerce.number().int().positive().optional(),
+  engineCapacity: z.coerce.number().positive().optional(), // Already allows float (e.g. 2.5 Liters)
+  doors: z.coerce.number().int().positive().optional(),    // Keep .int() (cannot have 3.5 doors)
+  seats: z.coerce.number().int().positive().optional(),    // Keep .int()
+  topSpeed: z.coerce.number().int().positive().optional(), // Usually int (200 km/h)
+  
+  // --- CHANGED: Removed .int() ---
+  // Acceleration is often a decimal (e.g. 3.4 seconds)
+  acceleration: z.coerce.number().positive().optional(), 
+  
   horsepower: z.coerce.number().int().positive().optional(),
   torque: z.coerce.number().int().positive().optional(),
+  
+  // Dimensions usually allow decimals, so ensure no .int() is present
   length: z.coerce.number().positive().optional(),
   width: z.coerce.number().positive().optional(),
   height: z.coerce.number().positive().optional(),
   weight: z.coerce.number().positive().optional(),
 
-  // Seller details
+  // Seller details (unchanged)
   sellerName: z.string().min(2, "Seller name must be at least 2 characters"),
   sellerImage: z.string().optional(),
   sellerPhone: z.string().min(5, "Valid phone number required"),

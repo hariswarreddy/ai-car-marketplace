@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -73,25 +72,32 @@ model Car{
 
 }
 
-model CarSpecification{
-  id String @id @default(cuid())
-  engineCapacity Int?
-  doors Int?
-  seats Int?
-  topSpeed Int?
-  acceleration Float?
-  horsepower Int?
-  torque Int?
-  length Int?
-  width Int?
-  height Int?
-  weight Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  carId String
-  car Car @relation(fields: [carId], references: [id], onDelete: Cascade)
+model CarSpecification {
+  id             String   @id @default(cuid())
+  
+  // CHANGE THIS: Engine capacity is often 2.5, 3.0 etc.
+  engineCapacity Float?   
+  
+  doors          Int?     // Keep as Int (you can't have 2.5 doors)
+  seats          Int?     // Keep as Int
+  topSpeed       Int?     // Usually whole numbers (km/h)
+  
+  // This is already correct based on your code
+  acceleration   Float?   
+  
+  horsepower     Int?
+  torque         Int?
+  
+  // CHANGE THESE: Dimensions are precise and often have decimals
+  length         Float?   
+  width          Float?   
+  height         Float?   
+  weight         Float?   
 
-  @@unique([carId])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  carId          String   @unique
+  car            Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
 }
 
 model CarSeller {

@@ -30,7 +30,7 @@ export const generateImage = async (text: string, name: string) => {
     const base64 = Buffer.from(buffer).toString("base64");
     return {
       base64Data: `data:image/jpeg;base64,${base64}`,
-      name: imagePath,
+      name: imagePath, 
     };
   } catch (error) {
     console.error("Error generating image:", error);

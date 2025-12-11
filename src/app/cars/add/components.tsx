@@ -2,12 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -233,7 +228,7 @@ const STORAGE_KEY = "new-car-details";
 export const AddCarForm = () => {
   const [isGenerateAILoading, setIsGenerateAILoading] = useState(false);
   const [submitHandlerLoading, setSubmitHandlerLoading] = useState(false);
-  const { images, addImage,  removeImage, clearImages } = useImages();
+  const { images, addImage, removeImage, clearImages } = useImages();
   const inputRef = useRef<HTMLInputElement>(null);
   const [color, setColor] = useState<string>("");
   const [colors, setColors] = useState<string[]>([]);
@@ -333,7 +328,7 @@ export const AddCarForm = () => {
       const toastId = toast.loading("Adding new car listing...");
       try {
         setSubmitHandlerLoading(true);
-        await addNewCar(data);
+        await addNewCar({ ...data, images });
         toast.success("Car listing added successfully", {
           id: toastId,
         });
@@ -381,18 +376,26 @@ export const AddCarForm = () => {
       setIsGenerateAILoading(false);
     }
   }, [watch, setValue]);
+
   useEffect(() => {
     setValue("images", images);
-    const savedCarDetails = localStorage.getItem(STORAGE_KEY);
-    if (!savedCarDetails) return;
-    const parsedDetails = JSON.parse(savedCarDetails) as AddCarSchema;
-    setColors(parsedDetails.colors);
-    setFeatures(parsedDetails.features);
+  }, [images]);
 
-    Object.entries(parsedDetails).forEach(([key, value]) => {
-      setValue(key as keyof AddCarSchema, value as string);
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+
+    const parsed = JSON.parse(saved) as AddCarSchema;
+
+    setColors(parsed.colors || []);
+    setFeatures(parsed.features || []);
+
+    Object.entries(parsed).forEach(([key, value]) => {
+      if (key === "images") return; // DON'T override images from Zustand
+      setValue(key as keyof AddCarSchema, value as any);
     });
-  }, [images, setValue]);
+  }, []); // RUNS ONLY ON FIRST PAGE LOAD
+
   return (
     <Card>
       <CardHeader>
@@ -481,6 +484,7 @@ export const AddCarForm = () => {
                 <Input
                   id="mileage"
                   type="number"
+                  step={"any"}
                   placeholder="e.g., 1200"
                   {...register("mileage")}
                 />
@@ -646,6 +650,7 @@ export const AddCarForm = () => {
                 <Input
                   id="engineCapacity"
                   type="number"
+                  step={"any"}
                   placeholder="e.g., 2998"
                   {...register("engineCapacity")}
                 />
@@ -752,6 +757,7 @@ export const AddCarForm = () => {
                 <Input
                   id="length"
                   type="number"
+                  step={"any"}
                   placeholder="e.g., 4794"
                   {...register("length")}
                 />
@@ -767,6 +773,7 @@ export const AddCarForm = () => {
                 <Input
                   id="width"
                   type="number"
+                  step={"any"}
                   placeholder="e.g., 1887"
                   {...register("width")}
                 />
@@ -782,6 +789,7 @@ export const AddCarForm = () => {
                 <Input
                   id="height"
                   type="number"
+                  step={"any"}
                   placeholder="e.g., 1393"
                   {...register("height")}
                 />
@@ -797,6 +805,7 @@ export const AddCarForm = () => {
                 <Input
                   id="weight"
                   type="number"
+                  step={"any"}
                   placeholder="e.g., 1800"
                   {...register("weight")}
                 />
@@ -842,12 +851,28 @@ export const AddCarForm = () => {
                 <Button
                   type="button"
                   onClick={() => {
-                    const val = inputRef.current?.value.trim() ?? "";
-                    if (!val) {
-                      toast.error("Please add image url");
-                    } else {
-                      addImage(val);
+                    const input = inputRef.current;
+                    if (!input) return;
+
+                    const url = input.value.trim();
+                    if (!url) {
+                      toast.error("Please add image URL");
+                      return;
                     }
+
+                    // Update Zustand immediately
+                    useImages.setState((state) => ({
+                      images: [...state.images, url],
+                    }));
+
+                    // Update RHF with the NEW Zustand value
+                    const newImages = useImages.getState().images;
+                    setValue("images", newImages);
+
+                    console.log("UPDATED IMAGES =", newImages);
+
+                    input.value = "";
+                    toast.success("Image added!");
                   }}
                 >
                   Add

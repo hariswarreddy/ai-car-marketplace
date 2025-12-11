@@ -65,7 +65,7 @@ const Cover = async ({ params }: Props) => {
   return car.images.length > 0 ? (
     <>
       <Image
-        src={car.images[0]}
+        src={car.images?.[0] || "/cars/la_1YiNflZIU.jpg"}
         alt={`${car.name} Image`}
         fill
         className="object-cover"
