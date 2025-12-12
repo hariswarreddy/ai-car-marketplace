@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { AISearch } from "./ai-search";
 import { ThemeSwitch } from "./theme-switch";
-import { auth, signOut } from "@/auth";
+
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 import { Image } from "@imagekit/next";
 import { Separator } from "@/components/ui/separator";
@@ -10,6 +10,7 @@ import { LogOutIcon } from "lucide-react";
 // import { Button } from "../../button";
 import { Bookmarks } from "./bookmarks";
 import { Button } from "@/components/ui/button";
+import { auth, signOut } from "@/auth";
 
 export const Header = () => {
   return (
